@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const User = mongoose.model("User");
+const passport = require("passport");
 
 exports.validateSignup = (req, res, next) => {
   // sanitizeBody from express validator
@@ -45,8 +46,37 @@ exports.signup = async (req, res, next) => {
   });
 };
 
-exports.signin = () => {};
+exports.signin = (req, res, next) => {
+  passport.authenticate("local", (err, user, info) => {
+    if (err) {
+      return res.status(500).json(err.message);
+    }
+    if (!user) {
+      return res.status(400).json(info.message);
+    }
 
-exports.signout = () => {};
+    req.login(user, (err) => {
+      if (err) {
+        return res.status(500).json(err.message);
+      }
 
-exports.checkAuth = () => {};
+      res.json(user);
+    });
+  })(req, res, next);
+};
+
+exports.signout = (req, res) => {
+  // clear cookie
+  // next-cookie.sid is the cookie name
+  res.clearCookie("next-cookie.sid");
+  req.logout();
+  res.json({ message: "You are signed out" });
+};
+
+exports.checkAuth = (req, res, next) => {
+  // isAuthenticated: from passport
+  if (req.isAuthenticated()) {
+    next();
+  }
+  res.redirect("/signin");
+};
