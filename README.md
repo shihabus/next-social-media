@@ -1,8 +1,8 @@
 ## Getting Started
 
-1. Clone this repo with `git clone git@github.com:reedbarger/next-connect.git`
+1. Clone this repo with `git clone https://github.com/shihabus/next-social-media.git`
 2. Install dependencies (`npm install` or `yarn install`)
-3. Go to [MLab](mlab.com) and create a new (free) database
+3. Go to [MLab]((https://cloud.mongodb.com/)) and create a new (free) database
 4. Copy the Database URI to connect using the Mongo Driver
 5. Change your .env.default file to just .env and paste the copied uri as the value for MONGO_URI in .env
 6. Add any random string for the SESSION_SECRET entry in your .env file
