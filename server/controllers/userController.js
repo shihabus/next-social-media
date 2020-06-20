@@ -6,13 +6,21 @@ exports.getUsers = async (req, res) => {
   res.json(users);
 };
 
-exports.getAuthUser = () => {};
+// the user will only have access to his/her details
+exports.getAuthUser = (req, res) => {
+  if (!req.isAuthUser) {
+    res.status(403).json({
+      message: "You are unauthenticated. Please sign up or sign in.",
+    });
+    return res.redirect("/signin");
+  }
+  res.json(req.user);
+};
 
 // this one is more like a middleware so we use next
 // id is the :userId
 exports.getUserById = async (req, res, next, id) => {
   const user = await User.findOne({ _id: id });
-  console.log("user", req.user);
   if (!user) {
     return res.status(404).json({ message: "User Id not found" });
   }
@@ -29,7 +37,12 @@ exports.getUserById = async (req, res, next, id) => {
   next();
 };
 
-exports.getUserProfile = () => {};
+exports.getUserProfile = (req, res) => {
+  if (!req.profile) {
+    return res.status(404).json({ message: "User not found" });
+  }
+  res.json(req.profile);
+};
 
 exports.getUserFeed = () => {};
 
@@ -49,7 +62,6 @@ exports.deleteUser = async (req, res) => {
       .json({ message: "You are not authorized to perform this action" });
   }
   const deletedUser = await User.findOneAndDelete({ _id: userId });
-  console.log("deletedUser", deletedUser);
   res.json(deletedUser);
 };
 
