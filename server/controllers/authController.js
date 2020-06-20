@@ -42,7 +42,7 @@ exports.signup = async (req, res, next) => {
     if (err) {
       return res.status(500).send(err.message);
     }
-    res.json(user);
+    res.json(user.name);
   });
 };
 
@@ -73,6 +73,8 @@ exports.signout = (req, res) => {
   res.json({ message: "You are signed out" });
 };
 
+// inorder to create protected routes, 
+// we use this middleware
 exports.checkAuth = (req, res, next) => {
   // isAuthenticated: from passport
   if (req.isAuthenticated()) {
