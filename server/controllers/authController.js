@@ -73,12 +73,12 @@ exports.signout = (req, res) => {
   res.json({ message: "You are signed out" });
 };
 
-// inorder to create protected routes, 
+// inorder to create protected routes,
 // we use this middleware
 exports.checkAuth = (req, res, next) => {
   // isAuthenticated: from passport
   if (req.isAuthenticated()) {
-    next();
+    return next();
   }
   res.redirect("/signin");
 };

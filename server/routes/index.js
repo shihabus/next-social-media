@@ -6,8 +6,8 @@ const postController = require("../controllers/postController");
 const router = express.Router();
 
 /* Error handler for async / await functions */
-const catchErrors = fn => {
-  return function(req, res, next) {
+const catchErrors = (fn) => {
+  return function (req, res, next) {
     return fn(req, res, next).catch(next);
   };
 };
@@ -26,6 +26,11 @@ router.get("/api/auth/signout", authController.signout);
 /**
  * USER ROUTES: /api/users
  */
+
+// if the req param has a: userId
+// this controller will be chained
+// this helps us not to explicitly bind the middleware
+// everywhere there is a userId param
 router.param("userId", userController.getUserById);
 
 router
