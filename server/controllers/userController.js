@@ -65,10 +65,70 @@ exports.deleteUser = async (req, res) => {
   res.json(deletedUser);
 };
 
-exports.addFollowing = () => {};
+// we have a following[] and we need to add
+// the id of the user to be followed into it
+exports.addFollowing = async (req, res, next) => {
+  const { followId } = req.body;
 
-exports.addFollower = () => {};
+  // find the current user
+  // push the followId to his/her following []
+  await User.findOneAndUpdate(
+    {
+      _id: req.user._id,
+    },
+    {
+      $push: { following: followId },
+    }
+  );
+  next();
+};
 
-exports.deleteFollowing = () => {};
+// now we need to add the user in the followers list of
+// the user who was followed
+exports.addFollower = async (req, res) => {
+  const { followId } = req.body;
+  const user = await User.findOneAndUpdate(
+    {
+      _id: followId,
+    },
+    {
+      $push: { followers: req.user._id },
+    },
+    {
+      new: true,
+    }
+  );
+  res.json(user);
+};
 
-exports.deleteFollower = () => {};
+exports.deleteFollowing = async (req, res, next) => {
+  const { followId } = req.body;
+
+  // find the current user
+  // push the followId to his/her following []
+  await User.findOneAndUpdate(
+    {
+      _id: req.user._id,
+    },
+    {
+      $pull: { following: followId },
+    }
+  );
+  next();
+};
+
+exports.deleteFollower = async (req, res) => {
+  const { followId } = req.body;
+  const user = await User.findOneAndUpdate(
+    {
+      _id: followId,
+    },
+    {
+      $push: { followers: req.user._id },
+    },
+    {
+      new: true,
+    }
+  );
+  res.json(user);
+};

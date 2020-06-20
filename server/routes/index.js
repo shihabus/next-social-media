@@ -33,6 +33,20 @@ router.get("/api/auth/signout", authController.signout);
 // everywhere there is a userId param
 router.param("userId", userController.getUserById);
 
+router.put(
+  "/api/users/follow",
+  authController.checkAuth,
+  catchErrors(userController.addFollowing),
+  catchErrors(userController.addFollower)
+);
+
+router.put(
+  "/api/users/unfollow",
+  authController.checkAuth,
+  catchErrors(userController.deleteFollowing),
+  catchErrors(userController.deleteFollower)
+);
+
 router
   .route("/api/users/:userId")
   .get(userController.getAuthUser)
@@ -50,19 +64,6 @@ router.get(
   "/api/users/feed/:userId",
   authController.checkAuth,
   catchErrors(userController.getUserFeed)
-);
-
-router.put(
-  "/api/users/follow",
-  authController.checkAuth,
-  catchErrors(userController.addFollowing),
-  catchErrors(userController.addFollower)
-);
-router.put(
-  "/api/users/unfollow",
-  authController.checkAuth,
-  catchErrors(userController.deleteFollowing),
-  catchErrors(userController.deleteFollower)
 );
 
 /**
