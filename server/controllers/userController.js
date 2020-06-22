@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 const User = mongoose.model("User");
-
+// for upload file handling
+const multer = require("multer");
+const jimp = require("jimp");
 exports.getUsers = async (req, res) => {
   const users = await User.find().select("_id name email createdAt updatedAt");
   res.json(users);
@@ -44,13 +46,67 @@ exports.getUserProfile = (req, res) => {
   res.json(req.profile);
 };
 
-exports.getUserFeed = () => {};
+exports.getUserFeed = async (req, res) => {
+  const { following, _id } = req.profile;
+  following.push(_id);
+  const users = await User.find({ _id: { $nin: following } }).select(
+    "_id name avatar"
+  );
+  res.json(users);
+};
 
-exports.uploadAvatar = () => {};
+const avatarUploadOptions = {
+  storage: multer.memoryStorage(),
+  limits: {
+    // files upto 1 mb
+    fileSize: 1024 * 1024 * 1,
+  },
+  fileFilter: (req, file, next) => {
+    // only allow image files
+    if (file.mimetype.startsWith("image/")) {
+      // next(args,moveToNextMiddlerware)
+      next(null, true);
+    } else {
+      next(null, false);
+    }
+  },
+};
 
-exports.resizeAvatar = () => {};
+// add req body with key avatar to req.file
+exports.uploadAvatar = multer(avatarUploadOptions).single("avatar");
 
-exports.updateUser = () => {};
+exports.resizeAvatar = async (req, res, next) => {
+  // if there is no file
+  if (!req.file) {
+    return next();
+  }
+
+  // if file is added in to req by multer
+  const extension = req.file.mimetype.split("/")[1];
+  req.body.avatar = `/static/uploads/avatars/${
+    req.user.name
+  }-${Date.now()}.${extension}`;
+  // read the image
+  const image = await jimp.read(req.file.buffer);
+  // resizing the image. setting the width to AUTO so not to stretch out
+  await image.resize(250, jimp.AUTO);
+  // writing the image
+  await image.write(`./${req.body.avatar}`);
+  next()
+};
+
+exports.updateUser = async (req, res) => {
+  req.body.updatedAt = new Date().toISOString();
+  // 1. find user with _id
+  // 2. set the entire req body
+  // 3. get the updated value and run field validations
+  const updatedUser = await User.findOneAndUpdate(
+    { _id: req.user._id },
+    { $set: req.body },
+    { new: true, runValidators: true }
+  );
+  res.json(updatedUser);
+};
 
 exports.deleteUser = async (req, res) => {
   const { userId } = req.params;
@@ -124,7 +180,7 @@ exports.deleteFollower = async (req, res) => {
       _id: followId,
     },
     {
-      $push: { followers: req.user._id },
+      $pull: { followers: req.user._id },
     },
     {
       new: true,
