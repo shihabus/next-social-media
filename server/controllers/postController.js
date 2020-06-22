@@ -54,9 +54,34 @@ exports.addPost = async (req, res) => {
   res.json(post);
 };
 
-exports.deletePost = () => {};
+// check if current user is the poster
+exports.getPostById = async (req, res, next, id) => {
+  const post = await Post.findOne({ _id: id });
+  if (!post) {
+    return res.status(404).json({ message: "Post not found" });
+  }
+  req.post = post;
 
-exports.getPostById = () => {};
+  const posterId = mongoose.Types.ObjectId(req.post.postedBy._id);
+  if (req.user && posterId.equals(req.user._id)) {
+    req.isPoster = true;
+    return next();
+  }
+  return next();
+};
+
+exports.deletePost = async (req, res) => {
+  const { _id } = req.post;
+
+  if (!req.isPoster) {
+    return res
+      .status(400)
+      .json({ message: "You are not authorized to perform this action" });
+  }
+
+  const deletePost = await Post.findByIdAndDelete({ _id });
+  res.json(deletePost);
+};
 
 exports.getPostsByUser = async (req, res) => {
   const posts = await Post.find({ postedBy: req.profile._id }).sort({
